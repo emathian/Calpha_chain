@@ -178,10 +178,40 @@ int main(argc, argv)
        cp_coords[i].j = coord[i].j;
     }
 
-      for (int i = 0; i < c; ++i)
+    for (int i = 0; i < c; ++i)
     {
        printf("Coords: %d / %d \n", cp_coords[i].i, cp_coords[i].j);
     }
+
+
+    // Find begining
+    int posL = 0;
+    i =0;
+    int stop =0;
+    int occ[numAtoms];
+    while(stop == 0 && i <= c){ // c  = Nb atom
+        if (i == 0){
+            occ[posL] = 1; // Initialisation
+        }
+        else{
+            if (cp_coords[i-1].i != cp_coords[i].i && cp_coords[i+1].i != cp_coords[i].i){
+                printf("Beg %d\n", cp_coords[i].i);
+                stop = 1;
+            }
+            else{
+                if(cp_coords[i].i == cp_coords[i-1].i ){
+                    occ[posL]++;
+                }
+                else{
+                    posL++;
+                    occ[posL]++;
+                }
+            }
+        }
+        i++;
+    }
+
+
         return 0;
 }
 
