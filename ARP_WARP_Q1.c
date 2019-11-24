@@ -18,14 +18,13 @@ typedef struct {
 } Point;
 
 
+typedef struct Coord{
+    int  i, j;
+} Coord;
+
+
 typedef struct Atom{
     int serial;
-   // char    atomName[5];
-   // char    altLoc[2];
-   // char    resName[4];
-   // char    chainID[2];
-   // int resSeq;
-   // char    iCode[2];
     Point   centre;
 } Atom;
 
@@ -48,19 +47,11 @@ int read_data(filename)
     FILE    *stream;
     char    line[LINE_LENGTH];
         char    s_serial[8];
-      //  char    s_name[5];      /* Alpha-carbon is " CA "; calcium is "CA  " */
-      //  char    ss_name[5]; 
-      //  char    s_altLoc[2];    /* Usually " " */
-      //  char    s_resName[4];
-      //  char    s_chainID[2];
-      //  char    s_resSeq[5];
-      // char    s_iCode[2];     /* Usually " " */
         char    s_x[8];
         char    s_y[8];
         char    s_z[8];
 
         int     serial;
-    //  int     resSeq;
         double  x;
         double  y;
         double  z;
@@ -74,44 +65,12 @@ int read_data(filename)
 
         while ( fgets(line, LINE_LENGTH, stream) ) {
                 
-               /* if ( strncmp(line, "ATOM  ", 6) == 0 ){
-                    // Extract only alpha carbon
-                    strncpy(ss_name,    &line[12], 4); ss_name[4]    = '\0';
-                    int t1 = 0;
-                    for (int i = 1; i<3; i++){
-                        if (i == 1 ){
-                            char b = 'C';
-                            if ( ss_name[i] ==  b){
-                             t1++;
-                           }
-                        }
-
-                        if (i == 2 ){
-                            char b = 'A';
-                            if ( ss_name[i] ==  b){
-                             t1++;
-                           }
-                        }
-                    }
-                    if (t1 ==2){
-               
-                    if ( strncmp(ss_name, "C", 2) == 0 ){
-                        printf("OK \n");
-
-                    }
-                */
-        
+    
                          /* Split the line into its constituent fields.
                          * We are only interested in columns 1-54.
                          */
 
                         strncpy(s_serial,  &line[0],  7); s_serial[7]  = '\0';
-                    //    strncpy(s_name,    &line[12], 4); s_name[4]    = '\0';
-                    //    strncpy(s_altLoc,  &line[16], 1); s_altLoc[1]  = '\0';
-                    //    strncpy(s_resName, &line[17], 3); s_resName[3] = '\0';
-                    //    strncpy(s_chainID, &line[21], 1); s_chainID[1] = '\0';
-                    //   strncpy(s_resSeq,  &line[22], 4); s_resSeq[4]  = '\0';
-                    //    strncpy(s_iCode,   &line[26], 1); s_iCode[1]   = '\0';
                         strncpy(s_x,       &line[7], 7); s_x[7]       = '\0';
                         strncpy(s_y,       &line[14], 7); s_y[7]       = '\0';
                         strncpy(s_z,       &line[20], 7); s_z[7]       = '\0';
@@ -138,12 +97,6 @@ int read_data(filename)
                 exit(0);
             }
             atom[i].serial = serial;
-            //strcpy(atom[i].atomName, s_name);
-            //strcpy(atom[i].altLoc, s_altLoc);
-            //strcpy(atom[i].resName, s_resName);
-            //strcpy(atom[i].chainID, s_chainID);
-            //atom[i].resSeq = resSeq;
-            //strcpy(atom[i].iCode, s_iCode);
             atom[i].centre.x = x;
             atom[i].centre.y = y;
             atom[i].centre.z = z;
