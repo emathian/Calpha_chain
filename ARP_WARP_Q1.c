@@ -168,11 +168,20 @@ int main(argc, argv)
     }
     
 
+  
+
+    struct Coord cp_coords[MAX_ATOMS*5]; // Copy of seq
+
     for (int i = 0; i < c; ++i)
     {
-       printf("Coords: %d / %d \n", coord[i].i, coord[i].j);
+       cp_coords[i].i = coord[i].i;
+       cp_coords[i].j = coord[i].j;
     }
 
+      for (int i = 0; i < c; ++i)
+    {
+       printf("Coords: %d / %d \n", cp_coords[i].i, cp_coords[i].j);
+    }
         return 0;
 }
 
