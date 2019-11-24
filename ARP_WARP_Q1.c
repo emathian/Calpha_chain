@@ -32,6 +32,8 @@ typedef struct Atom{
 char* substring(const char* str, size_t begin, size_t len);
 
 double dist_atom2(struct Atom *atom1, struct Atom *atom2);
+
+int begining(struct Coord *cp_coords, const int numAtoms);
  
 
 /*
@@ -185,31 +187,7 @@ int main(argc, argv)
 
 
     // Find begining
-    int posL = 0;
-    i =0;
-    int stop =0;
-    int occ[numAtoms];
-    while(stop == 0 && i <= c){ // c  = Nb atom
-        if (i == 0){
-            occ[posL] = 1; // Initialisation
-        }
-        else{
-            if (cp_coords[i-1].i != cp_coords[i].i && cp_coords[i+1].i != cp_coords[i].i){
-                printf("Beg %d\n", cp_coords[i].i);
-                stop = 1;
-            }
-            else{
-                if(cp_coords[i].i == cp_coords[i-1].i ){
-                    occ[posL]++;
-                }
-                else{
-                    posL++;
-                    occ[posL]++;
-                }
-            }
-        }
-        i++;
-    }
+    printf("RES %d\n", begining(&cp_coords[0], numAtoms ));
 
 
         return 0;
@@ -229,4 +207,35 @@ double dist_atom2(struct Atom *atom1, struct Atom *atom2)
 { 
   double d  = sqrt(pow(atom1->centre.x - atom2->centre.x,2) + pow(atom1->centre.y - atom2->centre.y,2) + pow(atom1->centre.z - atom2->centre.z,2));
   return d;
+} 
+
+int begining(struct Coord *cp_coords, const int numAtoms) 
+{ 
+    int posL = 0;
+    int i =0;
+    int stop =0;
+    int occ[numAtoms];
+    int res;
+    while(stop == 0 && i <= numAtoms){ // c  = Nb atom
+        if (i == 0){
+            occ[posL] = 1; // Initialisation
+        }
+        else{
+            if (cp_coords[i-1].i != cp_coords[i].i && cp_coords[i+1].i != cp_coords[i].i){
+                res  = cp_coords[i].i;
+                stop = 1;
+            }
+            else{
+                if(cp_coords[i].i == cp_coords[i-1].i ){
+                    occ[posL]++;
+                }
+                else{
+                    posL++;
+                    occ[posL]++;
+                }
+            }
+        }
+        i++;
+    }
+    return res;
 } 
