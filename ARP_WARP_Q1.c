@@ -144,10 +144,10 @@ int main(argc, argv)
             atom[i].centre);
     }
 
-    for (i=1; i<=numAtoms; ++i) {
+    /*for (i=1; i<=numAtoms; ++i) {
         printf("i %d  serial %d x %f y %f z %f \n", i ,atom[i].serial, atom[i].centre.x ,   atom[i].centre.y,  atom[i].centre.z);
 
-    }
+    }*/
 
     int c =0;
     for (i=1; i<=numAtoms; ++i) {
@@ -167,6 +167,11 @@ int main(argc, argv)
         }
     }
     
+
+    for (int i = 0; i < c; ++i)
+    {
+       printf("Coords: %d / %d \n", coord[i].i, coord[i].j);
+    }
 
         return 0;
 }
