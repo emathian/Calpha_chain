@@ -39,6 +39,7 @@ double dist_atom2(struct Atom *atom1, struct Atom *atom2);
  */
 
 Atom    atom[MAX_ATOMS+1];
+Coord   coord[MAX_ATOMS*5];
 
 
 int read_data(filename)
@@ -148,6 +149,7 @@ int main(argc, argv)
 
     }
 
+    int c =0;
     for (i=1; i<=numAtoms; ++i) {
         for (j=1; j<=numAtoms; ++j){
             d= dist_atom2(&atom[i], &atom[j]);
@@ -156,6 +158,9 @@ int main(argc, argv)
             if (atom[i].serial !=  atom[j].serial && d < threshold_max && d > threshold_min){
                     
                     printf("%f  %d %d \n", d ,atom[i].serial, atom[j].serial );
+                    coord[c].i = i;
+                    coord[c].j = j;
+                    c++;
                     //printf(" max %f\n", threshold_max);
             
             }
