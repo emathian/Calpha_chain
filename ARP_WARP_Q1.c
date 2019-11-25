@@ -148,7 +148,6 @@ int main(argc, argv)
 
     /*for (i=1; i<=numAtoms; ++i) {
         printf("i %d  serial %d x %f y %f z %f \n", i ,atom[i].serial, atom[i].centre.x ,   atom[i].centre.y,  atom[i].centre.z);
-
     }*/
 
     int c =0;
