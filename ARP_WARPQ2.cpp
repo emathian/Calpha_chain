@@ -296,6 +296,7 @@ pair<int, vector<int> > bfs(int u, int adjacency_matrix[][327], struct Atom *seq
     dis[u] = 0; 
   	int length = 0;
 	vector<int> v;
+     float ang;
     while (!q.empty()) 
     { 
         int t = q.front();       q.pop(); 
@@ -310,20 +311,20 @@ pair<int, vector<int> > bfs(int u, int adjacency_matrix[][327], struct Atom *seq
                 printf("neigh %d\n", neigh );
                 v_angle.push_back(neigh);
                 if(v_angle.size() >= 3){
-                    for (int i= 0 ; i< v_angle.size(); ++i){
-                        printf("vangle %d  ", v_angle[i] );
+                    if(v_angle[v_angle.size()-3] != v_angle[v_angle.size()-1] && v_angle[v_angle.size()-1] !=  v_angle[v_angle.size()-2] && v_angle[v_angle.size()-3] != v_angle[v_angle.size()-2]){
+                    ang = pseudo_valence_angle(&seq[v_angle[v_angle.size()-3]+1] , &seq[v_angle[v_angle.size()-2]+1], &seq[v_angle[v_angle.size()-1]+1]);
                     }
-                    printf("\n");
-                    printf("v_angle2 %lu %lu %lu \n", v_angle.size()-3, v_angle.size()-2, v_angle.size()-1);
-                   // printf("v_angle2 %d %d %d \n", v_angle[v_angle.size()-2],v_angle[v_angle.size()-1], v_angle[v_angle.size()] );
-                    printf("Serial %d %d %d \n", seq[v_angle[v_angle.size()-3]+1].serial , seq[v_angle[v_angle.size()-2]+1].serial, seq[v_angle[v_angle.size()-1]+1].serial);
-                    float ang = pseudo_valence_angle(&seq[v_angle[v_angle.size()-3]+1] , &seq[v_angle[v_angle.size()-2]+1], &seq[v_angle[v_angle.size()-1]+1]);
-                    printf("ang %f \n", ang );
+                    else{
+                        ang = -1;
+                    }
+                    if(ang < Pseudo_valence_angle_max && ang > Pseudo_valence_angle_min){
+                         if(dis[i] == -1){
+                            q.push(neigh); 
+                            dis[neigh] = dis[t] + 1; 
+                        }
+                    }
                 }
-        		if(dis[i] == -1){
-        			 q.push(neigh); 
-        			 dis[neigh] = dis[t] + 1; 
-        		}
+        
         	}
         }
         printf("LOOP WHILE  \n\n");
