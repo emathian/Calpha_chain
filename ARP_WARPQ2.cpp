@@ -187,52 +187,6 @@ int main(int argc, char ** argv)
         printf("(%d %d )\n", cp_coords[i].i , cp_coords[i].j );
      }
 
-    /*for(int i = 0; i < c; ++i){
-    	int current_in = cp_coords[i].i;
-    	int current_out = cp_coords[i].j;
-    	if(current_in != -1){
-    		for(int j = 0; j < c; ++j){
-    			if (cp_coords[j].i == current_out  && cp_coords[j].j ==current_in  ){
-    				 cp_coords[j].i = -1;
-      				 cp_coords[j].j = -1;
-    			}
-    		}
-    	}
-    }
-
-    
- 
-    
-    int n = 0;
-    struct Coord cp_cp_coords[MAX_ATOMS*5]; // Copy of seq
-    for (int i = 0; i < c; ++i)
-    {
-       if(cp_coords[i].i != -1){
-       		cp_cp_coords[n].i = cp_coords[i].i;
-       		cp_cp_coords[n].j = cp_coords[i].j;
-       		n++;
-       }
-    }
-
-    for (int i = 0; i < n; ++i){
-    	int current_in = cp_cp_coords[i].i;
-    	int current_out = cp_cp_coords[i].j;
-    	stack <int> s; 
-    	for(int j = 0; j < n; ++j) {
-    		if (cp_cp_coords[j].i == current_out){
-    			s.push(cp_cp_coords[j].j); // Add the output
-    		}
-    	}
-
-    	while(!s.empty()){
-    		int third = s.top();
-    		s.pop();
-    		float ang = pseudo_valence_angle(&atom[current_in], &atom[current_out],  &atom[third]);
-
-    	}
-    }
-
-    */
 
 
     // Initialisation of an adjacency matrix
@@ -259,41 +213,14 @@ int main(int argc, char ** argv)
 
     // Find begining
     //int farest_from0 = bfs(0, adjacency_matrix, numAtoms, 1);
-    int all =0;
-    int out = 0;
+
    	vector<int> lp = longestPathLength(adjacency_matrix, &atom[0] ,numAtoms);
     for(int i=0; i< lp.size(); i++){
         printf("res %d \n", lp[i] +1 );
     }
 
 
-   	vector<int> v_sol ;
-   	struct Coord new_coord[MAX_ATOMS*5]; // Copy of seq
-   	for (int i = 1; i < lp.size(); ++i)
-   	{
-   		//printf(" %d ", lp[i] );
-   		float ang = pseudo_valence_angle(&atom[lp[i-1] ], &atom[lp[i]],  &atom[lp[i+1]]);
-   		all ++;
-   		if(ang < Pseudo_valence_angle_min || ang > Pseudo_valence_angle_max){
-   		  // printf("cancel ang %f\n", ang);
-        //	printf(" CANCEL %d  %d %d  \n", lp[i-1], lp[i], lp[i+1]);
-
-   			out ++;
-   		}
-   		else{
-   			v_sol.push_back(lp[i-1]); v_sol.push_back(lp[i]); v_sol.push_back(lp[i+1]);
-   			//printf("v %d \n",lp[i-1] );
-   			printf(" %d  %d %d  \n", lp[i-1], lp[i], lp[i+1]);
-   		}
-   	}
-   	printf("\n");
-   	for (int i = 0; i < v_sol.size(); ++i)
-   	{
-   		printf("%d  ", v_sol[i]);
-   	}
-   	printf("\n");
-   	printf("all %d\n", all );
-   	printf("out %d \n", out);
+   	
         return 0;
 }
 
@@ -365,6 +292,7 @@ pair<int, vector<int> > bfs(int u, int adjacency_matrix[][327], struct Atom *seq
     vector<int> v_angle;
     v_angle.push_back(u);
     //  distance of u from u will be 0 
+    printf("u %d\n",u );
     dis[u] = 0; 
   	int length = 0;
 	vector<int> v;
@@ -372,16 +300,24 @@ pair<int, vector<int> > bfs(int u, int adjacency_matrix[][327], struct Atom *seq
     { 
         int t = q.front();       q.pop(); 
         v.push_back(t);
-
+        printf("Top  %d \n", t);
   		
         //  loop for all adjacent nodes of node-t 
         for (int i = 0; i < numAtoms; ++i)
         {
         	if(adjacency_matrix[t][i] == 1){
         		int neigh = i;
+                printf("neigh %d\n", neigh );
                 v_angle.push_back(neigh);
                 if(v_angle.size() >= 3){
-                    float ang = pseudo_valence_angle(&seq[v_angle.size()-2] , &seq[v_angle.size()-1], &seq[v_angle.size()]);
+                    for (int i= 0 ; i< v_angle.size(); ++i){
+                        printf("vangle %d  ", v_angle[i] );
+                    }
+                    printf("\n");
+                    printf("v_angle2 %lu %lu %lu \n", v_angle.size()-3, v_angle.size()-2, v_angle.size()-1);
+                   // printf("v_angle2 %d %d %d \n", v_angle[v_angle.size()-2],v_angle[v_angle.size()-1], v_angle[v_angle.size()] );
+                    printf("Serial %d %d %d \n", seq[v_angle[v_angle.size()-3]+1].serial , seq[v_angle[v_angle.size()-2]+1].serial, seq[v_angle[v_angle.size()-1]+1].serial);
+                    float ang = pseudo_valence_angle(&seq[v_angle[v_angle.size()-3]+1] , &seq[v_angle[v_angle.size()-2]+1], &seq[v_angle[v_angle.size()-1]+1]);
                     printf("ang %f \n", ang );
                 }
         		if(dis[i] == -1){
@@ -390,6 +326,7 @@ pair<int, vector<int> > bfs(int u, int adjacency_matrix[][327], struct Atom *seq
         		}
         	}
         }
+        printf("LOOP WHILE  \n\n");
     }
 
        
@@ -406,7 +343,7 @@ pair<int, vector<int> > bfs(int u, int adjacency_matrix[][327], struct Atom *seq
         } 
     } 
 
-   
+   printf("\n \n \n");
     return make_pair(nodeIdx, v); 
 } 
 
