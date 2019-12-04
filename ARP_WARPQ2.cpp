@@ -1,6 +1,7 @@
 
 //  EMILIE MATHIAN
-
+// Compilation:	g++ -o ARP_WARPQ2 ARP_WARPQ2.cpp 
+// Execution: ./ARP_WARPQ2 data_q2.txt
 
 
 #include <stdio.h>
@@ -18,9 +19,9 @@ using namespace std;
 
 #define MAX_ATOMS       10000
 #define LINE_LENGTH     30
-#define Pseudo_valence_angle_min 28
-#define Pseudo_valence_angle_max 105
-#define NUMATOMS 327
+#define Pseudo_valence_angle_min 0
+#define Pseudo_valence_angle_max 110
+#define NUMATOMS 330
 
 typedef struct {
     double  x, y, z;
@@ -41,12 +42,27 @@ typedef struct Atom{
 char* substring(const char* str, size_t begin, size_t len);
 
 double dist_atom2(struct Atom *atom1, struct Atom *atom2);
- 
+ /* Returns the Euclidian distance between two atoms. */
+
 float pseudo_valence_angle(struct Atom *A, struct Atom *B, struct Atom *C);
+/* Returns the angle according between three atoms.  */
 
-pair<int, vector<int> > bfs(int u,  int adjacency_matrix[][327],  struct Atom *seq ,const int numAtoms);
 
-vector<int> longestPathLength( int adjacency_matrix[][327],  struct Atom *seq, int numAtoms);
+pair<int, vector<int> > bfs(int u,  int adjacency_matrix[][330],  struct Atom *seq ,const int numAtoms);
+/*Breadth First Traversal: traversing algorithm.  */
+
+vector<int> longestPathLength( int adjacency_matrix[][330],  struct Atom *seq, int numAtoms);
+/* Returns the longest path in a graph.*/
+
+
+void dfs(int numAtoms, int adjacency_matrix[][330],  struct Atom *seq);
+/* Depth-First Search: Tansversal algorithm.*/
+
+
+void dfsUtil(int u, int numAtoms,int adjacency_matrix[][330],  struct Atom *seq, bool visited[], 
+             vector<pair<int, int> > road_used, int parent, int it, vector<int> v_sol);
+/* Depth-First Search Recursive loop (called by dfs).*/
+
 /*
  * Declare an array to hold data read from the ATOM records of a PDB file.
  */
@@ -139,27 +155,15 @@ int main(int argc, char ** argv)
     double threshold_max = 4.3;
     double d;
 
-        if ( argc<2 ) {
-                (void) fprintf(stderr, "usage: atom_array file.pdb\n");
-                exit(0);
-        }
+
+    if ( argc<2 ) {
+            (void) fprintf(stderr, "usage: atom_array file.pdb\n");
+            exit(0);
+    }
 
     numAtoms = read_data(argv[1]);
-    /*for (i=1; i<=numAtoms; ++i) {
-        write_pdb_atom(
-            atom[i].serial,
-            atom[i].centre);
-    }
-    */
-    for (i=1; i<=numAtoms; ++i) {
-        printf("i %d  serial %d x %f y %f z %f \n", i ,atom[i].serial, atom[i].centre.x ,   atom[i].centre.y,  atom[i].centre.z);
-    }
 
- 
-
-
-
-
+    // Creation of a list of adjacency
     int c =0;
     for (i=1; i<=numAtoms; ++i) {
         for (j=1; j<=numAtoms; ++j){
@@ -168,30 +172,14 @@ int main(int argc, char ** argv)
             
                     coord[c].i = i -1; // We go from 0 to numatom -1 //-1
                     coord[c].j = j -1;// We go from 0 to numatom -1 // -1
-                    //printf("%f  %d %d \n", d, coord[c].i, coord[c].j );
+                    printf("%f  %d %d \n", d, coord[c].i, coord[c].j );
                     c++;          
             }
         }
     }
-
-    // Remove vertices between atom with unexpected pseudo valence angle
-    struct Coord cp_coords[MAX_ATOMS*5]; // Copy of seq
-
-    for (int i = 0; i < c; ++i)
-    {
-       cp_coords[i].i = coord[i].i;
-       cp_coords[i].j = coord[i].j;
-    }
-
-     for (int i = 0; i < c; ++i){
-        printf("(%d %d )\n", cp_coords[i].i , cp_coords[i].j );
-     }
-
-
-
+    
+    
     // Initialisation of an adjacency matrix
-
-
     int adjacency_matrix[NUMATOMS][NUMATOMS];
     for (int i = 0; i < numAtoms; ++i)
     {
@@ -201,6 +189,8 @@ int main(int argc, char ** argv)
     	}
     }
 
+
+    // Fill the adjacency matrix
     for (int i = 0; i < c; ++i){
     	int in = coord[i].i;
     	int out = coord[i].j;
@@ -211,17 +201,13 @@ int main(int argc, char ** argv)
 
 
 
-    // Find begining
-    //int farest_from0 = bfs(0, adjacency_matrix, numAtoms, 1);
-
-   	vector<int> lp = longestPathLength(adjacency_matrix, &atom[0] ,numAtoms);
-    for(int i=0; i< lp.size(); i++){
-        printf("res %d \n", lp[i] +1 );
-    }
-
-
-   	
-        return 0;
+    // Find the longest chain of alpha-carbon
+    // !!! I DIDN'T MANAGE TO RETURN A VECTOR OF U BY DFSUTILS (Illegal instruction: 4)
+    /// THAT IS WHY EACH U ADDED TO THE QUEUE IS PRINTED. 
+    /// THE RESULTS ARE WRITTEN IN A FILE AND THE LONGEST VECTOR IS SEARCHED ON R. !!!!
+    dfs(numAtoms, adjacency_matrix,  &atom[0]);
+   
+        return 0; 
 }
 
 
@@ -236,12 +222,14 @@ char* substring(const char* str, size_t begin, size_t len)
 
 double dist_atom2(struct Atom *atom1, struct Atom *atom2) 
 { 
+	/* Returns the Euclidian distance between two atoms. */
   double d  = sqrt(pow(atom1->centre.x - atom2->centre.x,2) + pow(atom1->centre.y - atom2->centre.y,2) + pow(atom1->centre.z - atom2->centre.z,2));
   return d;
 } 
 
 
 float pseudo_valence_angle(struct Atom *A, struct Atom *B, struct Atom *C){
+	/* Returns the angle according between three atoms.  */
 
     // AB = B - A
     float AB[3];
@@ -274,67 +262,55 @@ float pseudo_valence_angle(struct Atom *A, struct Atom *B, struct Atom *C){
 
 
 
-pair<int, vector<int> > bfs(int u, int adjacency_matrix[][327], struct Atom *seq ,const int numAtoms) 
+pair<int, vector<int> > bfs(int u,  int adjacency_matrix[][330],  struct Atom *seq ,const int numAtoms)
 { 
-	// return the most distant point from u
+	/*Breadth First Traversal: traversing algorithm. 
+  // Arguments:
+    int u : initial point
+    adjacency_matrix,
+    numAtoms: number of atoms  
+  BFS is a tranversing algorithm.
+  */
 
 
-    //  mark all distance with -1 
+    //  mark all distance with -1 -> Not visited
     int dis[numAtoms]; 
     for (int i = 0; i < numAtoms; ++i)
     {
     	dis[i] = -1;
     }
-
+    // Initialisation of the queue
     queue<int> q; 
     q.push(u); 
-    int vect_angle[3];
-    vector<int> v_angle;
-    v_angle.push_back(u);
+  
     //  distance of u from u will be 0 
-    printf("u %d\n",u );
     dis[u] = 0; 
-  	int length = 0;
-	vector<int> v;
-     float ang;
+
+    // Initialisation of the output vector
+  	vector<int> v;
     while (!q.empty()) 
     { 
         int t = q.front();       q.pop(); 
+        // Add the new node (atom)
         v.push_back(t);
-        printf("Top  %d \n", t);
-  		
-        //  loop for all adjacent nodes of node-t 
+
+        //  loop for all adjacent nodes of t 
         for (int i = 0; i < numAtoms; ++i)
         {
         	if(adjacency_matrix[t][i] == 1){
         		int neigh = i;
-                printf("neigh %d\n", neigh );
-                v_angle.push_back(neigh);
-                if(v_angle.size() >= 3){
-                    if(v_angle[v_angle.size()-3] != v_angle[v_angle.size()-1] && v_angle[v_angle.size()-1] !=  v_angle[v_angle.size()-2] && v_angle[v_angle.size()-3] != v_angle[v_angle.size()-2]){
-                    ang = pseudo_valence_angle(&seq[v_angle[v_angle.size()-3]+1] , &seq[v_angle[v_angle.size()-2]+1], &seq[v_angle[v_angle.size()-1]+1]);
-                    }
-                    else{
-                        ang = -1;
-                    }
-                    if(ang < Pseudo_valence_angle_max && ang > Pseudo_valence_angle_min){
-                         if(dis[i] == -1){
-                            q.push(neigh); 
-                            dis[neigh] = dis[t] + 1; 
-                        }
-                    }
-                }
-        
+        		if(dis[i] == -1){ // If the node hasn't been visited 
+        			 q.push(neigh); // Add the neighbors of t to the queue
+        			 dis[neigh] = dis[t] + 1; 
+        		}
         	}
         }
-        printf("LOOP WHILE  \n\n");
     }
 
-       
     int maxDis = 0; 
     int nodeIdx; 
   
-    //  get farthest node distance and its index 
+    //  get farthest node distance and from u
     for (int i = 0; i < numAtoms; i++) 
     { 
         if (dis[i] > maxDis) 
@@ -344,21 +320,142 @@ pair<int, vector<int> > bfs(int u, int adjacency_matrix[][327], struct Atom *seq
         } 
     } 
 
-   printf("\n \n \n");
     return make_pair(nodeIdx, v); 
 } 
 
-vector<int> longestPathLength( int adjacency_matrix[][327], struct Atom *seq, int numAtoms) 
-{ 
 
+vector<int> longestPathLength( int adjacency_matrix[][330],  struct Atom *seq, int numAtoms)
+{ 
+  /*longestPathLength: 
+  // Arguments:
+    adjacency_matrix,
+    numAtoms: number of atoms  
+  In order to find the longest path, the BFS algorithm is calculate for the point 0. 
+  Then a second BFS is calculated from the fartest point to 0. This method assures to find the 
+  longest path.
+  */
   
     // first bfs to find one end point of 
     // longest path 
-    pair<int, vector<int> >  t1_pair = bfs(0, adjacency_matrix, &seq[0], numAtoms); 
+    pair<int, vector<int> >  t1_pair = bfs(0, adjacency_matrix, &seq[0],numAtoms); 
     int t1 = t1_pair.first;
-  
     //  second bfs to find actual longest path 
     pair<int, vector<int> > t2_pair = bfs(t1, adjacency_matrix, &seq[0], numAtoms);
     return t2_pair.second;
 } 
+
+
+
+void dfsUtil(int u, int numAtoms, int adjacency_matrix[][330],  struct Atom *seq, bool visited[], 
+             vector<pair<int, int> > road_used, int parent, int it, vector<int> v_sol ) 
+{ 
+	/* Depth-First Search Recursive loop (called by dfs).
+	Argument:
+	-u current node
+	- numAtoms number of atoms
+	- adjacency_matrix
+	- *seq : list of atoms
+	- visited: a node is visited when it has ever been find by dfs.
+	- road_used: vector conting each vertex visited.
+	- it : iterator
+	- v_sol : vector containing each element of the queue. I DIDN'T MANEGE TO RETURN THIS VECTOR*/
+
+    int c = 0; 
+
+    // !!!! THIS STOP CONDITION IS FAR FROM BE PERFECT. IT ALLOWS TO STOP THE RECURSIVE PROCESS WHEN THE ALGORITHM
+    // REPEATS IS "BLOCKED" IN A VERTEX !!!
+    if (road_used.size() > 4 && road_used[road_used.size() -3].first == road_used[road_used.size() -2].second  
+                    && road_used[road_used.size() -3].first == road_used[road_used.size() -1].first 
+                    && road_used[road_used.size() -2].second == road_used[road_used.size() -1].first &&
+                    road_used[road_used.size() -1].first == road_used[road_used.size() -4].second &&
+                    road_used[road_used.size() -2].second == road_used[road_used.size() -4].second &&
+                     road_used[road_used.size() -3].first == road_used[road_used.size() -4].second  ){
+        for (int i = 0; i < numAtoms; i++) {
+            visited[i] = true;
+            c++; 
+        }
+        c--; 
+    }
+    if (c == numAtoms -1){
+    	// Print the solution
+        printf("VSOL\n");
+        for (int i = 0; i < v_sol.size(); ++i)
+        {
+            printf("%d \n", v_sol[i] );
+        }
+
+        return;
+    }
+    
+    // Mark u as visited
+    visited[u] = true; 
+  
+    // Track the current edge 
+    pair<int, int> parent_u = make_pair(parent, u);
+    road_used.push_back(parent_u); 
+
+    // Initialisation of the vector solution
+    v_sol.push_back(u+1);
+   
+    // Check for not visited node and proceed with it. 
+    for (int i = 0; i < numAtoms; ++i){
+        if(adjacency_matrix[u][i] == 1){
+            if (!visited[i]){
+                 // Calculation of the pseudo valence angle between the current vertex and the following node (i);
+                if (road_used.size() > 3 && parent_u.first != parent_u.second
+                    && parent_u.second != i
+                    && parent_u.second != parent_u.first){
+                    
+                   float ang  = pseudo_valence_angle(&seq[parent_u.first +1 ], &seq[parent_u.second +1 ], &seq[i + 1 ]);
+
+                   if (ang > Pseudo_valence_angle_min && ang < Pseudo_valence_angle_max){
+                    dfsUtil(i, numAtoms, adjacency_matrix, &seq[0], visited, road_used, u, it + 1, v_sol); 
+                    
+                   }
+                }
+                else{ // There is less than three elements in road_used
+                    dfsUtil(i, numAtoms, adjacency_matrix, &seq[0], visited, road_used, u, it + 1, v_sol); 
+                }
+               
+            }
+        }
+    }
+    // Backtrack 
+
+    for (int i =0; i < road_used.size(); ++i){ 
+        pair<int, int> y = make_pair(road_used[i].first, road_used[i].second);
+        if (y.second == u) {
+       
+     
+            dfsUtil(y.first, numAtoms, adjacency_matrix, &seq[0] ,visited, 
+                   road_used, u, it + 1, v_sol); 
+        }
+    }
+}  
+
+  
+
+void dfs(int numAtoms, int adjacency_matrix[][330],  struct Atom *seq) 
+{ 
+  /* Depth-First Search Recursive loop (called by dfs).*/
+
+    // Create a array of visited ndoe 
+    bool visited[numAtoms]; 
+  
+    // Vector to track last visited road 
+    vector<pair<int, int> > road_used; 
+  
+    // Initialize all the node with false 
+    for (int i = 0; i < numAtoms; i++) 
+        visited[i] = false; 
+  
+    // call the function bfs to find the extremity
+    pair<int, vector<int> >  t1_pair = bfs(0, adjacency_matrix, &seq[0], numAtoms); 
+    int t1 = t1_pair.first;
+    // From this point call dfsUtils
+    vector<int> v_sol;
+    dfsUtil(t1, numAtoms, adjacency_matrix, &seq[0] ,visited, road_used, -1, 0, v_sol); 
+
+} 
+
 

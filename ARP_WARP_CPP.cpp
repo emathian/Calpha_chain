@@ -131,7 +131,7 @@ int main(int argc, char ** argv)
     int i;
     int j;
     double threshold_min = 2.8;
-    double threshold_max = 5;
+    double threshold_max = 4.8;
     double d;
 
         if ( argc<2 ) {
